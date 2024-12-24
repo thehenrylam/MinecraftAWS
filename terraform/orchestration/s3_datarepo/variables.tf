@@ -3,8 +3,8 @@ variable "aws_region" {
     type = string
 }
 
-variable "bucket_name" {
-    description = "The name of the S3 bucket to create."
+variable "s3_name" {
+    description = "The name of the S3 (S3 Bucket) that will store data needed for backups and deployment"
     type = string
 }
 

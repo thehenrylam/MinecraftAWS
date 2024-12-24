@@ -11,7 +11,7 @@ locals {
     vpc_name    = "vpc-${var.nickname}"
     rtb_name    = "rtb-${var.nickname}"
     igw_name    = "igw-${var.nickname}"
-    bucket_name = "s3b-${var.nickname}-datarepo"
+    s3_name     = "s3b-${var.nickname}-datarepo"
 }
 
 module "vpc_cloud" {
@@ -23,8 +23,8 @@ module "vpc_cloud" {
     vpc_cidr_block  = var.vpc_cidr_block
 }
 
-# module "s3_datarepo" {
-#     source      = "./s3_datarepo"
-#     aws_region  = var.aws_region
-#     bucket_name = local.bucket_name
-# }
+module "s3_datarepo" {
+    source        = "./s3_datarepo"
+    aws_region    = var.aws_region
+    s3_name      = local.s3_name
+}
