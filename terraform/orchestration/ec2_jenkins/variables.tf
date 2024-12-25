@@ -3,27 +3,9 @@ variable "aws_region" {
     type        = string
 }
 
-variable "nickname" {
-    description = "The deployment's identifier (nickname). Will be used to help name cloud assets (e.g. Nickname of 'apple-fritter' will result in the name of 'vpc-apple-fritter' for the VPC)"
+variable "vpc_id" {
+    description = "ID of the VPC (Virtual Private Cloud) that the deployment will operate in"
     type        = string
-}
-
-variable "admin_ip_list" {
-    description = "List of IP addresses allowed to access Jenkins via SSH, in CIDR notation"
-    type        = list(string)
-    validation {
-        condition       = alltrue([for ip in var.admin_ip_list : provider::assert::cidrv4(ip)])
-        error_message   = "Each IP address must be a valid CIDR block (e.g. 127.0.0.1/32)"
-    }
-}
-
-variable "vpc_cidr_block" {
-    description = "The CIDR block that the VPC will use"
-    type        = string
-    validation {
-        condition       = provider::assert::cidrv4(var.vpc_cidr_block)
-        error_message   = "The vpc_cidr_block must be a valid IPv4 CIDR notation, e.g., 10.0.0.0/16."
-    }
 }
 
 variable "sbn_jenkins_cidr_block" {
@@ -35,13 +17,42 @@ variable "sbn_jenkins_cidr_block" {
     }
 }
 
+variable "admin_ip_list" {
+    description = "List of IP addresses allowed to access Jenkins via SSH, in CIDR notation"
+    type        = list(string)
+    validation {
+        condition       = alltrue([for ip in var.admin_ip_list : provider::assert::cidrv4(ip)])
+        error_message   = "Each IP address must be a valid CIDR block (e.g. 127.0.0.1/32)"
+    }
+}
+
+variable "jenkins_sbn_name" {
+    description = "Subnet name for Jenkins instance"
+    type        = string
+}
+
+variable "jenkins_ec2_name" {
+    description = "EC2 Jenkins instance name"
+    type        = string
+}
+
 variable "jenkins_ec2_type" {
-    description = "The EC2 instance type for the Jenkins instance"
+    description = "EC2 Jenkins instance type"
     type        = string
 }
 
 variable "jenkins_ami_id" {
-    description = "The AMI (Represented as an ID) that Jenkins will run on"
+    description = "EC2 Jenkins instance AMI ID"
+    type        = string
+}
+
+variable "jenkins_sg_name" {
+    description = "Security Group name for Jenkins instance"
+    type        = string
+}
+
+variable "jenkins_kp_name" {
+    description = "Keypair Name for Jenkins instance"
     type        = string
 }
 
