@@ -71,7 +71,7 @@ resource "aws_eip_association" "eip_assoc_jenkins" {
 resource "aws_subnet" "subnet_jenkins" {
     vpc_id      = var.vpc_id 
     cidr_block  = var.sbn_jenkins_cidr_block
-    map_public_ip_on_launch = true
+    map_public_ip_on_launch = var.jenkins_eipalloc_id != null ? false : true # true
     availability_zone = var.jenkins_availability_zone # "us-east-1a"
 
     tags = {

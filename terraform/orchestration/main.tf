@@ -53,10 +53,7 @@ module "ec2_jenkins" {
     vpc_id                      = module.vpc_cloud.vpc_id
     sbn_jenkins_cidr_block      = var.sbn_jenkins_cidr_block
     # TODO: On Destroy, stop the EC2 instance before it destroys the IGW, and detach the volume before destroying it
-    # TODO: Boolean Flag To Enable Automatic IP Assignment
-    # IN-PROGRESS: Elastic IP to assign onto Jenkins (Or can be set as an output)
-    # DONE: Set up the ENI to Enable Automatic IP Assignment
-    # DONE: Create settings to set up the volume (How large it is, if its encrypted or not, etc) DONE
+    # TO-TEST: Elastic IP to assign onto Jenkins (Or can be set as an output)
     # Admin IPs (For SSH Access)
     admin_ip_list               = var.admin_ip_list
     # Jenkins Settings
