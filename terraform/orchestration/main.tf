@@ -1,10 +1,10 @@
 terraform {
-  required_providers {
-    assert = {
-      source = "opentofu/assert"
-      version = "0.14.0"
+    required_providers {
+        assert = {
+        source = "opentofu/assert"
+        version = "0.14.0"
+        }
     }
-  }
 }
 
 locals {
@@ -15,7 +15,9 @@ locals {
     s3_name     = "s3b-${var.nickname}-datarepo"
 
     jenkins_sbn_name    = "subnet-${var.nickname}-jenkins"
+    jenkins_eni_name    = "eni-${var.nickname}-jenkins"
     jenkins_ec2_name    = "ec2-${var.nickname}-jenkins"
+    jenkins_vol_name    = "vol-${var.nickname}-jenkins"
     jenkins_sg_name     = "sgrp-${var.nickname}-jenkins"
     jenkins_kp_name     = "kp-${var.nickname}-jenkins"
 }
@@ -45,21 +47,31 @@ module "s3_datarepo" {
 }
 
 module "ec2_jenkins" {
-    source                  = "./ec2_jenkins"
-    aws_region              = var.aws_region
+    source                      = "./ec2_jenkins"
+    aws_region                  = var.aws_region
     # Networking
-    vpc_id                  = module.vpc_cloud.vpc_id
-    sbn_jenkins_cidr_block  = var.sbn_jenkins_cidr_block
+    vpc_id                      = module.vpc_cloud.vpc_id
+    sbn_jenkins_cidr_block      = var.sbn_jenkins_cidr_block
+    # TODO: On Destroy, stop the EC2 instance before it destroys the IGW, and detach the volume before destroying it
     # TODO: Boolean Flag To Enable Automatic IP Assignment
-    # TODO: Elastic IP to assign onto Jenkins (Or can be set as an output)
+    # IN-PROGRESS: Elastic IP to assign onto Jenkins (Or can be set as an output)
+    # DONE: Set up the ENI to Enable Automatic IP Assignment
+    # DONE: Create settings to set up the volume (How large it is, if its encrypted or not, etc) DONE
     # Admin IPs (For SSH Access)
-    admin_ip_list           = var.admin_ip_list
+    admin_ip_list               = var.admin_ip_list
     # Jenkins Settings
-    jenkins_sbn_name        = local.jenkins_sbn_name
-    jenkins_ec2_name        = local.jenkins_ec2_name
-    jenkins_ec2_type        = var.jenkins_ec2_type
-    jenkins_ami_id          = var.jenkins_ami_id
-    jenkins_sg_name         = local.jenkins_sg_name
-    jenkins_kp_name         = local.jenkins_kp_name
-    jenkins_pem_filename    = var.jenkins_pem_filename
+    jenkins_availability_zone   = var.jenkins_availability_zone
+    jenkins_eipalloc_id         = var.jenkins_eipalloc_id
+    jenkins_sbn_name            = local.jenkins_sbn_name
+    jenkins_eni_name            = local.jenkins_eni_name
+    jenkins_ec2_name            = local.jenkins_ec2_name
+    jenkins_ec2_type            = var.jenkins_ec2_type
+    jenkins_vol_name            = local.jenkins_vol_name
+    jenkins_vol_size            = var.jenkins_vol_size
+    jenkins_vol_type            = var.jenkins_vol_type
+    jenkins_vol_device_name     = var.jenkins_vol_device_name
+    jenkins_ami_id              = var.jenkins_ami_id
+    jenkins_sg_name             = local.jenkins_sg_name
+    jenkins_kp_name             = local.jenkins_kp_name
+    jenkins_pem_filename        = var.jenkins_pem_filename
 }

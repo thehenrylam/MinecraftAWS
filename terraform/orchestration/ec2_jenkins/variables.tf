@@ -26,8 +26,32 @@ variable "admin_ip_list" {
     }
 }
 
+variable "jenkins_availability_zone" {
+    description = "The availability zone for the Jenkins instance to exist on"
+    type        = string
+}
+
+variable "jenkins_eipalloc_id" {
+    description = "Elastic IP Allocation to be assigned to the Jenkins instance (represented as ID)"
+    type        = string
+    default     = null
+
+    validation {
+        condition = (
+            var.jenkins_eipalloc_id == null ||
+            can(regex("^eipalloc-[0-9a-f]{17}$", var.jenkins_eipalloc_id))
+        )
+        error_message = "The jenkins_eipalloc_id must be null or a valid AWS Elastic IP Allocation ID, matching the pattern 'eipalloc-' followed by 17 hexadecimal characters."
+    }
+}
+
 variable "jenkins_sbn_name" {
     description = "Subnet name for Jenkins instance"
+    type        = string
+}
+
+variable "jenkins_eni_name" {
+    description = "Elastic Network Interface for Jenkins instance"
     type        = string
 }
 
@@ -39,6 +63,33 @@ variable "jenkins_ec2_name" {
 variable "jenkins_ec2_type" {
     description = "EC2 Jenkins instance type"
     type        = string
+}
+
+variable "jenkins_vol_name" {
+    description = "EC2 Jenkins volume name"
+    type        = string
+}
+
+variable "jenkins_vol_size" {
+    description = "EC2 Jenkins volume size (GB)"
+    type        = number
+    default     = 12
+    validation {
+        condition       = var.jenkins_vol_size >= 8 && var.jenkins_vol_size <= 512 && floor(var.jenkins_vol_size) == var.jenkins_vol_size
+        error_message   = "The jenkins_vol_size variable must be a positive integer between 8 and 512"
+    }
+}
+
+variable "jenkins_vol_type" {
+    description = "EC2 Jenkins volume type (e.g. gp2)"
+    type        = string
+    default     = "gp2"
+}
+
+variable "jenkins_vol_device_name" {
+    description = "EC2 Jenkins volume device name (e.g. /dev/sda1)"
+    type        = string
+    default     = "/dev/sda1"
 }
 
 variable "jenkins_ami_id" {
