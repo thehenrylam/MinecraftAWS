@@ -28,9 +28,9 @@ packer init .
 
 # Set up Jenkins AMI:
 # Validate
-PACKER_LOG=1 AWS_PROFILE=example_aws_profile packer validate -var-file=../config/pkr_jenkins.pkrvars.hcl jenkins.pkr.hcl
+PACKER_LOG=1 AWS_PROFILE=example_aws_profile packer validate -var-file=../config/packer/jenkins.pkrvars.hcl jenkins.pkr.hcl
 # Build
-PACKER_LOG=1 AWS_PROFILE=example_aws_profile packer build -var-file=../config/pkr_jenkins.pkrvars.hcl jenkins.pkr.hcl
+PACKER_LOG=1 AWS_PROFILE=example_aws_profile packer build -var-file=../config/packer/jenkins.pkrvars.hcl jenkins.pkr.hcl
 
 # ...
 ```
