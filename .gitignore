@@ -2,3 +2,9 @@
 *.tfstate*
 *.lock.hcl
 .terraform/
+
+*manifest.json
+
+*.ignore.*
+
+test_directory/
