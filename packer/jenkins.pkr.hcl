@@ -8,6 +8,10 @@ packer {
 }
 
 # Variables most likely to change
+variable "version_codename" {
+    type    = string
+    default = "latest"
+}
 variable "docker_version_string" {
     type    = string
     default = "latest"
@@ -39,30 +43,57 @@ source "amazon-ebs" "jenkins" {
     # Use Debian 12 as our base AMI
     source_ami = "ami-0789039e34e739d67"
     # Debian 12 uses "admin" as the default username, so use that
-    ssh_username = "{{ user `ssh_username` }}"
+    ssh_username = var.ssh_username
 }
 
 build {
     sources = ["source.amazon-ebs.jenkins"]
 
+    # Ensure the target directories exist before uploading files
+    provisioner "shell" {
+        inline = [
+            "mkdir -p ${var.home_directory}/scripts/config",
+            "mkdir -p ${var.home_directory}/scripts"
+        ]
+    }
+
     # Upload all needed scripts to the instance
     provisioner "file" {
+        source      = "../config/nginxconfig_jenkins.yml"
+        destination = "${var.home_directory}/scripts/config/nginxconfig_jenkins.yml"
+    }
+    provisioner "file" {
+        source      = "./jenkins_node/common_functions.sh"
+        destination = "${var.home_directory}/scripts/common_functions.sh"
+    }
+    provisioner "file" {
+        source      = "./jenkins_node/deploy_app_jenkins.sh"
+        destination = "${var.home_directory}/scripts/deploy_app_jenkins.sh"
+    }
+    provisioner "file" {
         source      = "./jenkins_node/deploy_app_nginx.sh"
-        destination = "{{ user `home_dir` }}/scripts/deploy_app_nginx.sh"
+        destination = "${var.home_directory}/scripts/deploy_app_nginx.sh"
     }
     provisioner "file" {
         source      = "./jenkins_node/initialize_node_jenkins.sh"
-        destination = "{{ user `home_dir` }}/scripts/initialize_node_jenkins.sh"
+        destination = "${var.home_directory}/scripts/initialize_node_jenkins.sh"
     }
 
     # Set up all permissions and execute initialize_node_jenkins.sh
     provisioner "shell" {
-        script = "./jenkins_node/initialize_node_jenkins.sh"
+        inline = [
+            "chmod +x ${var.home_directory}/scripts/common_functions.sh",
+            "chmod +x ${var.home_directory}/scripts/deploy_app_jenkins.sh",
+            "chmod +x ${var.home_directory}/scripts/deploy_app_nginx.sh",
+            "chmod +x ${var.home_directory}/scripts/initialize_node_jenkins.sh",
+            "${var.home_directory}/scripts/initialize_node_jenkins.sh >> ${var.home_directory}/scripts/initialize_node_jenkins.log 2>&1"
+        ]
         environment_vars = [
-            "HOME_DIRECTORY={{ user `home_directory` }}", 
-            "DOCKER_VERSION_STRING={{ user `docker_version_string` }}",
-            "GITHUB_URL_NGINX={{ user `github_url_nginx` }}",
-            "GITHUB_URL_JENKINS={{ user `github_url_jenkins` }}",
+            "HOME_DIRECTORY=${var.home_directory}", 
+            "VERSION_CODENAME=${var.version_codename}"
+            "DOCKER_VERSION_STRING=${var.docker_version_string}",
+            "GITHUB_URL_NGINX=${var.github_url_nginx}",
+            "GITHUB_URL_JENKINS=${var.github_url_jenkins}",
         ]
     }
 
