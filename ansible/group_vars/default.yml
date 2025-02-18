@@ -1,0 +1,10 @@
+---
+# Important Note: The playbook_dir is the root of the project repo
+directory:
+  config: "{{ playbook_dir }}/config/"
+  ansible: "{{ playbook_dir}}/ansible/"
+  packer: "{{ playbook_dir }}/packer/"
+  terraform: "{{ playbook_dir }}/terraform/"
+
+configuration:
+  terraform_varfile: "{{ playbook_dir }}/config/terraform/minecraftAWS.tfvars" 

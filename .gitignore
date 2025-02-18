@@ -7,4 +7,7 @@
 
 *.ignore.*
 
+minecraftAWS*.tfvars
+!minecraftAWS_TEMPLATE.tfvars
+
 test_directory/

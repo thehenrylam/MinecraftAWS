@@ -1,0 +1,10 @@
+---
+- name: Load default variables
+  include_vars: "{{ role_path }}/../../group_vars/default.yml"
+
+- name: Gather All Facts
+  set_fact: 
+    # Get the _cache/ directory
+    terraform_cache_dir: "{{ directory.terraform }}/_cache/"
+
+- name: Clone nginx repository 
