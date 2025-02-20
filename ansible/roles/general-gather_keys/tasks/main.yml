@@ -1,4 +1,6 @@
 ---
+- name: Load master variables
+  include_vars: "{{ role_path }}/../../group_vars/master.yml"
 - name: Load default variables
   include_vars: "{{ role_path }}/../../group_vars/default.yml"
 
@@ -7,4 +9,50 @@
     # Get the _cache/ directory
     terraform_cache_dir: "{{ directory.terraform }}/_cache/"
 
-- name: Clone nginx repository 
+# JENKINS: Generate the needed keys to generate all keys for the nginx configuration 
+- name: Jenkins-Nginx - Clear uneeded files # This script is meant to generate new keys, so we remove all relevant files to make sure we're generating fresh files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ terraform_cache_dir }}/nginx/"
+    - "{{ terraform_cache_dir }}/dhparams.pem"
+    - "{{ terraform_cache_dir }}/fullchain.pem"
+    - "{{ terraform_cache_dir }}/privkey.pem"
+- name: Jenkins-Nginx - Clone NGINX repository
+  ansible.builtin.git:
+    repo: "{{ gitrepo.nginx }}"
+    dest: "{{ terraform_cache_dir }}/nginx/"
+    version: "main"
+    force: yes
+- name: Jenkins-Nginx - Generate Certs
+  ansible.builtin.expect:
+    command: "./gen-certs.sh"
+    responses:
+      ".*Country Name.*"              : "{{ jenkins.cert.country_name }}"
+      ".*State or Province Name.*"    : "{{ jenkins.cert.state_name }}"
+      ".*Locality Name.*"             : "{{ jenkins.cert.local_name }}"
+      ".*Organization Name.*"         : "{{ jenkins.cert.org_name }}"
+      ".*Organizational Unit Name.*"  : "{{ jenkins.cert.unit_name }}"
+      ".*Common Name.*"               : "{{ jenkins.cert.common_name }}"
+      ".*Email Address.*"             : "{{ jenkins.cert.email_address }}"
+  args:
+    chdir: "{{ terraform_cache_dir }}/nginx/"
+- name: Copy certs into _cache
+  ansible.builtin.copy:
+    src: "{{ item[0] }}"
+    dest: "{{ item[1] }}"
+  loop:
+    - [ "{{ terraform_cache_dir }}/nginx/certs/fullchain.pem", "{{ terraform_cache_dir }}/fullchain.pem" ]
+    - [ "{{ terraform_cache_dir }}/nginx/certs/privkey.pem", "{{ terraform_cache_dir }}/privkey.pem" ]
+- name: Jenkins-Nginx - Generate Certs 
+  ansible.builtin.shell:
+    cmd: "./gen-dhparams.sh"
+    chdir: "{{ terraform_cache_dir }}/nginx/"
+- name: Copy dhparams into _cache
+  ansible.builtin.copy:
+    src: "{{ item[0] }}"
+    dest: "{{ item[1] }}"
+  loop:
+    - [ "{{ terraform_cache_dir }}/nginx/config/dhparams.pem", "{{ terraform_cache_dir }}/dhparams.pem" ]
+

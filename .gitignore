@@ -2,6 +2,8 @@
 *.tfstate*
 *.lock.hcl
 .terraform/
+*/_cache/*
+!*/_cache/dummy.txt
 
 *manifest.json
 
