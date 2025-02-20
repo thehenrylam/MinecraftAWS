@@ -15,51 +15,104 @@ provider "aws" {
 }
 
 locals {
-    # 
+    # Determine the date and time that the role is created, and then format to YYYYMMDDHHMMSS
     rgx_datetime = "(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})Z"
     _tmp_role_creation_date_tkns = regex(local.rgx_datetime, aws_iam_role.un_pem_iam_role.create_date)
     iam_role_creation_date_suffix = join("", local._tmp_role_creation_date_tkns)
-    jenkins_instance_profile_name = "instance_profile_test123-${local.iam_role_creation_date_suffix}"
+    # Determine the prefixes and names for the cloud assets
+    prefix_scrt = "scrt-${var.nickname}-jenkins"
+    name_iam_policy = "iam-policy-${var.nickname}-jenkins"
+    name_iam_role = "iam-role-${var.nickname}-jenkins"
+    name_instance_profile = "iam-instance_profile-${var.nickname}-jenkins-${local.iam_role_creation_date_suffix}"
+    
 }
 
-### INITIALIZE IAM SECRET (un.pem key)
-resource "aws_secretsmanager_secret" "un_pem" {
+
+
+### INITIALIZE IAM SECRETS
+resource "aws_secretsmanager_secret" "scrt_fullchain_pem" {
     # Initialize the secret container
-    name = "un_pem_secret"
-    description = "Stores the un.pem file for use in Jenkins (in MinecraftAWS)"
-    recovery_window_in_days = 0 # Set this to be 0 to have it immediately be deleted upon destroy
+    name = "${local.prefix_scrt}-fullchain_pem"
+    description = "Stores the fullchain.pem fiel for use in Jenkins (MinecraftAWS)"
+    recovery_window_in_days = 0
+
+    tags = {
+        Nickname = "${var.nickname}"
+    }
 }
-resource "aws_secretsmanager_secret_version" "un_pem_value" {
+resource "aws_secretsmanager_secret_version" "scrt_fullchain_pem_version" {
     # Associate the secret to the secret container
-    secret_id     = aws_secretsmanager_secret.un_pem.id
+    secret_id = aws_secretsmanager_secret.scrt_fullchain_pem.id
     # Upload the file as the secret_string
-    secret_string = file("${var.cache_path}/un.pem")
+    secret_string = file("${var.cache_path}/fullchain.pem")
+}
+
+resource "aws_secretsmanager_secret" "scrt_privkey_pem" {
+    # Initialize the secret container
+    name = "${local.prefix_scrt}-privkey_pem"
+    description = "Stores the privkey.pem fiel for use in Jenkins (MinecraftAWS)"
+    recovery_window_in_days = 0
+
+    tags = {
+        Nickname = "${var.nickname}"
+    }
+}
+resource "aws_secretsmanager_secret_version" "scrt_privkey_pem_version" {
+    # Associate the secret to the secret container
+    secret_id = aws_secretsmanager_secret.scrt_privkey_pem.id
+    # Upload the file as the secret_string
+    secret_string = file("${var.cache_path}/privkey.pem")
+}
+
+resource "aws_secretsmanager_secret" "scrt_dhparams_pem" {
+    # Initialize the secret container
+    name = "${local.prefix_scrt}-dhparams_pem"
+    description = "Stores the dhparams.pem fiel for use in Jenkins (MinecraftAWS)"
+    recovery_window_in_days = 0
+
+    tags = {
+        Nickname = "${var.nickname}"
+    }
+}
+resource "aws_secretsmanager_secret_version" "scrt_dhparams_pem_version" {
+    # Associate the secret to the secret container
+    secret_id = aws_secretsmanager_secret.scrt_dhparams_pem.id
+    # Upload the file as the secret_string
+    secret_string = file("${var.cache_path}/dhparams.pem")
 }
 
 
-### INITIALIZE IAM POLICY (un.pem key)
-data "aws_iam_policy_document" "un_pem_iam_document_secret" {
-    # Define policy document (secret) as datablock
+
+### INITIALIZE IAM POLICY
+data "aws_iam_policy_document" "iam_policy_document_jenkins" {
+    # Define policy document (policy) as datablock
     statement {
         actions = [
             "secretsmanager:GetSecretValue",
             "secretsmanager:DescribeSecret"
         ]
         resources = [
-            aws_secretsmanager_secret.un_pem.arn
+            aws_secretsmanager_secret.scrt_fullchain_pem.arn,
+            aws_secretsmanager_secret.scrt_privkey_pem.arn,
+            aws_secretsmanager_secret.scrt_dhparams_pem.arn
         ]
     }
 }
-resource "aws_iam_policy" "un_pem_iam_policy" {
-    name = "un_pem_iam_policy"
-    # Sets policy using (json converted) data block
-    policy = data.aws_iam_policy_document.un_pem_iam_document_secret.json
+resource "aws_iam_policy" "iam_policy_jenkins" {
+    name = "${local.name_iam_policy}"
+    # Sets policy using above (json converted) datablock
+    policy = data.aws_iam_policy_document.iam_policy_document_jenkins
+
+    tags = {
+        Nickname = "${var.nickname}"
+    }
 }
 
 
-### INITIALIZE IAM ROLE (un.pem key)
-data "aws_iam_policy_document" "un_pem_iam_document_role" {
-    # Define policy document (role) as data block
+
+### INITIALIZE IAM ROLE 
+data "aws_iam_policy_document" "iam_role_document_jenkins" {
+    # Define policy document (role) as datablock
     statement {
         actions = [
             "sts:AssumeRole"
@@ -70,32 +123,32 @@ data "aws_iam_policy_document" "un_pem_iam_document_role" {
         }
     }
 }
-resource "aws_iam_role" "un_pem_iam_role" {
-    name = "un_pem_iam_role"
-    # Sets policy using (json converted) data block
-    assume_role_policy = data.aws_iam_policy_document.un_pem_iam_document_role.json
+resource "aws_iam_role" "iam_role_jenkins" {
+    name = "${local.name_iam_role}"
+    # Sets policy using above (json converted) datablock
+    policy = data.aws_iam_policy_document.iam_role_document_jenkins
+
+    tags = {
+        Nickname = "${var.nickname}"
+    }
 }
 
 
-### ATTACH IAM POLICY TO ROLE (un.pem key)
-resource "aws_iam_role_policy_attachment" "un_pem_policy_attachment" {
-    role       = aws_iam_role.un_pem_iam_role.name
-    policy_arn = aws_iam_policy.un_pem_iam_policy.arn
+
+### ATTACH IAM POLICY TO ROLE 
+resource "aws_iam_role_policy_attachment" "iam_rpa_jenkins" {
+    role        = aws_iam_role.iam_role_jenkins.name
+    policy_arn  = aws_iam_policy.iam_policy_jenkins.arn
 }
 
-### USE IAM ROLE TO CREATE INSTANCE PROFILE
+
+
+### CREATE INSTANCE PROFILE USING IAM ROLE
 resource "aws_iam_instance_profile" "instance_profile" {
-  name = "${local.jenkins_instance_profile_name}"
-  role = aws_iam_role.un_pem_iam_role.name
-}
+    name = "${local.name_instance_profile}"
+    role = aws_iam_role.iam_role_jenkins.name
 
-# Extra IAM statements needed
-#   "Statement": [
-#     {
-#       "Effect": "Allow",
-#       "Action": "secretsmanager:GetSecretValue",
-#       "Resource": [
-#         "arn:aws:secretsmanager:your-region:your-account-id:secret:un_pem_secret",
-#       ]
-#     }
-#   ]
+    tags = {
+        Nickname = "${var.nickname}"
+    }
+}

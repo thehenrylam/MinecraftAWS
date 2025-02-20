@@ -44,6 +44,7 @@ module "secretsmanager_jenkins_ssh" {
     source      = "./secretsmanager_jenkins_ssl"
     aws_region  = var.aws_region
     # Cache path to grab the files
+    nickname    = var.nickname
     cache_path  = local.cache_path
 }
 
