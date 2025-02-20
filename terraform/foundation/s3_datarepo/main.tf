@@ -7,12 +7,17 @@ provider "aws" {
     region = var.aws_region 
 }
 
+locals {
+    s3_name = "s3b-${var.nickname}-datarepo"
+}
+
 # Create S3 bucket
 resource "aws_s3_bucket" "datarepo" {
-    bucket = var.s3_name
+    bucket = local.s3_name
 
     tags = {
-        Name = var.s3_name
+        Name = local.s3_name
+        Nickname = var.nickname
     }
 }
 

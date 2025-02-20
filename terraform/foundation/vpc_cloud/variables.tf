@@ -3,19 +3,9 @@ variable "aws_region" {
     type = string
 }
 
-variable "vpc_name" {
-    description = "Name of the VPC (Virtual Private Cloud) that the deployment will operate in"
-    type = string
-}
-
-variable "rtb_name" {
-    description = "Name of the RTB (Route Table) associated to the VPC"
-    type = string
-}
-
-variable "igw_name" {
-    description = "Name of the IGW (Internet Gateway) that connects allows the VPC access to the internet and vice versa"
-    type = string
+variable "nickname" {
+    description = "The deployment's identifier (nickname). Will be used to help name cloud assets."
+    type        = string
 }
 
 variable "vpc_cidr_block" {

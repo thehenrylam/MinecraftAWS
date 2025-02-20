@@ -3,9 +3,9 @@ variable "aws_region" {
     type = string
 }
 
-variable "s3_name" {
-    description = "The name of the S3 (S3 Bucket) that will store data needed for backups and deployment"
-    type = string
+variable "nickname" {
+    description = "The deployment's identifier (nickname). Will be used to help name cloud assets."
+    type        = string
 }
 
 variable "s3_path_binaries" {

@@ -17,7 +17,7 @@ provider "aws" {
 locals {
     # Determine the date and time that the role is created, and then format to YYYYMMDDHHMMSS
     rgx_datetime = "(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})Z"
-    _tmp_role_creation_date_tkns = regex(local.rgx_datetime, aws_iam_role.un_pem_iam_role.create_date)
+    _tmp_role_creation_date_tkns = regex(local.rgx_datetime, aws_iam_role.iam_role_jenkins.create_date)
     iam_role_creation_date_suffix = join("", local._tmp_role_creation_date_tkns)
     # Determine the prefixes and names for the cloud assets
     prefix_scrt = "scrt-${var.nickname}-jenkins"
@@ -37,7 +37,7 @@ resource "aws_secretsmanager_secret" "scrt_fullchain_pem" {
     recovery_window_in_days = 0
 
     tags = {
-        Nickname = "${var.nickname}"
+        Nickname = var.nickname
     }
 }
 resource "aws_secretsmanager_secret_version" "scrt_fullchain_pem_version" {
@@ -54,7 +54,7 @@ resource "aws_secretsmanager_secret" "scrt_privkey_pem" {
     recovery_window_in_days = 0
 
     tags = {
-        Nickname = "${var.nickname}"
+        Nickname = var.nickname
     }
 }
 resource "aws_secretsmanager_secret_version" "scrt_privkey_pem_version" {
@@ -71,7 +71,7 @@ resource "aws_secretsmanager_secret" "scrt_dhparams_pem" {
     recovery_window_in_days = 0
 
     tags = {
-        Nickname = "${var.nickname}"
+        Nickname = var.nickname
     }
 }
 resource "aws_secretsmanager_secret_version" "scrt_dhparams_pem_version" {
@@ -101,10 +101,10 @@ data "aws_iam_policy_document" "iam_policy_document_jenkins" {
 resource "aws_iam_policy" "iam_policy_jenkins" {
     name = "${local.name_iam_policy}"
     # Sets policy using above (json converted) datablock
-    policy = data.aws_iam_policy_document.iam_policy_document_jenkins
+    policy = data.aws_iam_policy_document.iam_policy_document_jenkins.json
 
     tags = {
-        Nickname = "${var.nickname}"
+        Nickname = var.nickname
     }
 }
 
@@ -126,10 +126,10 @@ data "aws_iam_policy_document" "iam_role_document_jenkins" {
 resource "aws_iam_role" "iam_role_jenkins" {
     name = "${local.name_iam_role}"
     # Sets policy using above (json converted) datablock
-    policy = data.aws_iam_policy_document.iam_role_document_jenkins
+    assume_role_policy = data.aws_iam_policy_document.iam_role_document_jenkins.json
 
     tags = {
-        Nickname = "${var.nickname}"
+        Nickname = var.nickname
     }
 }
 
@@ -149,6 +149,6 @@ resource "aws_iam_instance_profile" "instance_profile" {
     role = aws_iam_role.iam_role_jenkins.name
 
     tags = {
-        Nickname = "${var.nickname}"
+        Nickname = var.nickname
     }
 }
