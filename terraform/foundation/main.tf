@@ -16,6 +16,11 @@ locals {
     igw_name    = "igw-${var.nickname}"
 
     cache_path  = "${path.module}/../_cache/"
+
+    output_data = {
+        vpc_name = (module.vpc_cloud.vpc_id == null || trimspace(module.vpc_cloud.vpc_id) == "") ? "null" : module.vpc_cloud.vpc_id
+        instance_profile = (module.secretsmanager_jenkins_ssh.instance_profile_name == null || trimspace(module.secretsmanager_jenkins_ssh.instance_profile_name) == "") ? "null" : module.secretsmanager_jenkins_ssh.instance_profile_name
+    }
 }
 
 # VPC - Everything in the project runs on it (Self-Explanatory)
@@ -43,9 +48,9 @@ module "secretsmanager_jenkins_ssh" {
     cache_path  = local.cache_path
 }
 
-# Execute packer build to generate an AMI for jenkins
-data "external" "packer_output" {
-  program = ["bash", "${path.module}/../../packer/test.pkr.sh", "${module.secretsmanager_jenkins_ssh.instance_profile_name}"]
+# The output is saved into the terraform.tfstate 
+# It can be retrieved from the CLI by executing the following command:
+# $ tofu output <<output_variable>>
+output "foundation_output" {
+    value = local.output_data
 }
-
-

@@ -1,0 +1,22 @@
+# AWS Operating Region
+aws_region = "{{ general.aws.region }}"
+
+# Main Settings
+nickname = "{{ general.nickname }}"
+admin_ip_list = {{ general.admin_ip_list | default([]) | to_json }} # *.j2 templated to be a list
+
+# Key Settings
+jenkins_pem_filename    = "kp-{{ general.nickname }}-jenkins.pem"
+
+# CIDR Block Settings
+vpc_cidr_block          = "{{ cloud.vpc.cidr_block }}"
+sbn_jenkins_cidr_block  = "{{ cloud.sbn.cidr_block_jenkins }}"
+
+# Jenkins Settings
+jenkins_availability_zone = "{{ jenkins.aws.availability_zone }}"
+jenkins_eipalloc_id = null
+jenkins_ec2_type = "{{ jenkins.aws.ec2.type }}"
+jenkins_ami_id = "{{ on_runtime.jenkins_ami_id | default('UNDEFINED') }}"
+jenkins_vol_size = {{ jenkins.aws.vol.size }}
+jenkins_vol_type = "{{ jenkins.aws.vol.type }}"
+jenkins_vol_device_name = "{{ jenkins.aws.vol.device_name }}"

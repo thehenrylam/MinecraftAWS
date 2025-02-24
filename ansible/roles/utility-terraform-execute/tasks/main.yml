@@ -1,0 +1,32 @@
+---
+# Initialize the module (make sure we're working with up-to-date settings)
+- name: Initialize Terraform Module
+  command: "tofu init"
+  args:
+    chdir: "{{ target_dir }}"
+
+# Add in -auto-approve so it doesn't require user input to allow the execution 
+- name: Execute Terraform Module 
+  ansible.builtin.shell: >
+    TF_LOG={{ log_level | default('info') }} 
+    AWS_PROFILE="{{ aws_profile }}" 
+    tofu {{ command }} 
+    -auto-approve
+    -var-file="{{ varfile }}" 
+    -compact-warnings
+  args:
+    chdir: "{{ target_dir }}"
+  when: command not in ['plan']
+
+# Add in -auto-approve so it doesn't require user input to allow the execution 
+- name: Execute Terraform Module (No -auto-approve)
+  ansible.builtin.shell: >
+    TF_LOG={{ log_level | default('info') }} 
+    AWS_PROFILE="{{ aws_profile }}" 
+    tofu {{ command }} 
+    -var-file="{{ varfile }}" 
+    -compact-warnings
+  args:
+    chdir: "{{ target_dir }}"
+  when: command in ['plan']
+

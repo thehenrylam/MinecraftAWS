@@ -1,0 +1,36 @@
+---
+general:
+  nickname: "mcaws-prod" # <- Place your nickname here (e.g. mcaws-prod, mcaws-staging, mcaws-test, etc)
+  admin_ip_list: ["???"] # <- Insert your CIDR block here to access EC2 instances
+  aws:
+    region: "us-east-1" # <- Use whatever aws region works best for you (closer to your location is usually better) 
+
+gitrepo:
+  nginx: "https://github.com/thehenrylam/SimpleNginx.git"
+  jenkins: "https://github.com/thehenrylam/SimpleJenkins.git"
+
+cloud: # Adjust your CIDR blocks don't conflict with your other projects
+  vpc:
+    cidr_block: "172.16.0.0/16"
+  sbn:
+    cidr_block_jenkins: "172.16.0.0/24"
+    cidr_block_minecraft_A: "172.16.100.0/24"
+    cidr_block_minecraft_B: "172.16.101.0/24"
+
+jenkins:
+  aws:
+    availability_zone: "us-east-1a" # <- Change this based on your aws_region setting
+    ec2:
+      type: "t4g.micro"
+    vol:
+      size: 12
+      type: "gp2"
+      device_name: "/dev/sda1"
+  cert: # Change these SSL cert signing settings according to your preferences
+    country_name: "US"
+    state_name: "CA"
+    local_name: "San Francisco"
+    org_name: "Example Corp"
+    unit_name: "Example Corp"
+    common_name: "Example"
+    email_address: ""

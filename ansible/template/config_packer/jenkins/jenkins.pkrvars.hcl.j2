@@ -1,0 +1,27 @@
+# NOTE: 
+# This variable file's main focus is to perform the following roles:
+#   1. Provide values that can only be determined at runtime 
+#       (e.g. instance_profile; This is created via a separate ansible job)
+#   2. Provide values that's anticipated to change for other users of this 
+#       (e.g. github_url_*; Others may want to use their own repos for deployment)
+#
+# Please try to keep variable values to the *.pkr.hcl as long as:
+#   - They are readily determined before runtime
+#   - They configs only affects 1 file
+#   - They don't need to change a lot
+
+# ---> MUST BE DETERMINED ON RUNTIME <---
+# Retrieve the instance_profile via:
+# cd terraform/foundation/
+# tofu output foundation_output
+instance_profile="{{ on_runtime.jenkins.iam_instance_profile }}"
+
+# The nickname for the project (Helps to name the AMI and also helps to set the Tag)
+nickname="{{ general.nickname }}"
+
+# The aws region that the AMI will be generated on
+aws_region="{{ general.aws.region }}"
+
+# The github links that are needed for the node
+github_url_nginx="{{ gitrepo.nginx }}"
+github_url_jenkins="{{ gitrepo.jenkins }}"

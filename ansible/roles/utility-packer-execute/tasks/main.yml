@@ -1,0 +1,17 @@
+---
+# Initialize Packer Module 
+- name: Initialize Packer Module
+  command: "packer init ."
+  args:
+    chdir: "{{ target_dir }}"
+
+# Execute Packer  
+- name: Execute Packer 
+  shell: >
+    PACKER_LOG={{ log_level | default(1) }} 
+    AWS_PROFILE="{{ aws_profile }}" 
+    packer {{ command }} 
+    -var-file="{{ varfile }}" 
+    {{ pkrfile }} 2>&1
+  args:
+    chdir: "{{ target_dir }}"

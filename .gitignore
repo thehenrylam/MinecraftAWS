@@ -2,14 +2,28 @@
 *.tfstate*
 *.lock.hcl
 .terraform/
+
+# Cache directories
 */_cache/*
 !*/_cache/dummy.txt
 
-*manifest.json
+# Variable files (That are either sensitive, or designed to be templated)
+ansible/group_vars/master.yml
+ansible/group_vars/on_runtime.yml
+ansible/template/*/*.tfvars
+ansible/template/*/*.yml
+ansible/template/*/*.pkrvars.hcl
+ansible/template/*/*/*.tfvars
+ansible/template/*/*/*.yml
+ansible/template/*/*/*.pkrvars.hcl
 
-*.ignore.*
 
 minecraftAWS*.tfvars
 !minecraftAWS_TEMPLATE.tfvars
 
+# Output files
+*manifest.json
+
+# Adhoc test and ignore
+*.ignore.*
 test_directory/

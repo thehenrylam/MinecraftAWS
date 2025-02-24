@@ -1,14 +1,15 @@
 ---
+### DEFAULT VARIABLES: Only modify if you know what you are doing
 # Important Note: The playbook_dir is the root of the project repo
 directory:
   # Standard directories
-  ansible:    "{{ playbook_dir }}/ansible/"
-  packer:     "{{ playbook_dir }}/packer/"
-  terraform:  "{{ playbook_dir }}/terraform/"
+  ansible:    "{{ playbook_dir }}/"
+  packer:     "{{ playbook_dir }}/../packer/"
+  terraform:  "{{ playbook_dir }}/../terraform/"
   # Configuration directories 
-  ansible_config:   "{{ playbook_dir }}/ansible/group_vars/"
-  packer_config:    "{{ playbook_dir }}/ansible/template/config_packer/"
-  terraform_config: "{{ playbook_dir }}/ansible/template/config_terraform/"
+  ansible_config:   "{{ playbook_dir }}/group_vars/"
+  packer_config:    "{{ playbook_dir }}/template/config_packer/"
+  terraform_config: "{{ playbook_dir }}/template/config_terraform/"
 
 configuration:
   default:

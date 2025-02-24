@@ -1,0 +1,27 @@
+---
+# Template on_runtime.yml 
+# Variables that we need for this operation:
+# - iam_instance_profile
+- name: Template on_runtime.yml
+  include_role:
+    name: utility-template_on_runtime
+# Load in the on_runtime variable file
+- name: Load on_runtime variables
+  include_vars: "{{ configuration.on_runtime.varfile }}"
+
+# Template j2 files (packer jenkins)
+- name: Template j2 files (packer jenkins)
+  include_role:
+    name: utility-template_j2
+  vars:
+    target_dir: "{{ directory.packer_config }}/jenkins/"
+
+# Delete AMI 
+- name: Delete AMI 
+  include_role:
+    name: utility-aws-ami_delete
+  vars:
+    aws_profile:   "{{ aws_profile }}"
+    target_ami_id: "{{ on_runtime.jenkins.ami_id }}"
+    target_dir:    "{{ directory.packer }}"
+

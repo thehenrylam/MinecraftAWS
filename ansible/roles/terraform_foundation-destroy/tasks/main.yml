@@ -1,28 +1,16 @@
 ---
-- name: Load default variables
-  include_vars: "{{ role_path }}/../../group_vars/default.yml"
+### Ensure that the terraform variable file is up-to-date
+- name: Update Terraform Variable file is up-to-date
+  template:
+    src: "{{ configuration.terraform.master.varfile }}.j2"
+    dest: "{{ configuration.terraform.master.varfile }}"
 
-- name: Gather All Facts
-  set_fact: 
-    # This is done so that the role will stop earlier if aws_profile was not provided
-    aws_profile: "{{ aws_profile }}" 
-    # Get the target directory (placed at the end for easy modification)
-    target_dir: "{{ directory.terraform }}/foundation/"
-
-- name: Initialize Terraform Module
-  ansible.builtin.shell: "tofu init"
-  args:
-    chdir: "{{ target_dir }}"
-
-# Add in -auto-approve so it doesn't require user input to allow the execution 
+# Destroy Terraform Module
 - name: Destroy Terraform Module
-  ansible.builtin.shell: >
-    TF_LOG=info 
-    AWS_PROFILE="{{ aws_profile }}" 
-    tofu destroy 
-    -auto-approve
-    -var-file="{{ configuration.terraform_varfile }}" 
-    -compact-warnings
-  args:
-    chdir: "{{ target_dir }}"
-
+  include_role: 
+    name: utility-terraform-execute
+  vars:
+    aws_profile: "{{ aws_profile }}"
+    command: "destroy"
+    varfile: "{{ configuration.terraform.master.varfile }}"
+    target_dir: "{{ directory.terraform }}/foundation/"

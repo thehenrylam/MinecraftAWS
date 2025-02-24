@@ -1,0 +1,46 @@
+---
+# Template on_runtime.yml 
+# Variables that we need for this operation:
+# - iam_instance_profile
+- name: Template on_runtime.yml
+  include_role:
+    name: utility-template_on_runtime
+# Load in the on_runtime variable file
+- name: Load on_runtime variables
+  include_vars: "{{ configuration.on_runtime.varfile }}"
+
+# Template j2 files (packer jenkins)
+- name: Template j2 files (packer jenkins)
+  include_role:
+    name: utility-template_j2
+  vars:
+    target_dir: "{{ directory.packer_config }}/jenkins/"
+
+# Execute packer module 
+- name: Build Packer Module (Jenkins)
+  include_role:
+    name: utility-packer-execute
+  vars:
+    aws_profile: "{{ aws_profile }}"
+    command: "build"
+    pkrfile: "jenkins.pkr.hcl"
+    varfile: "{{ configuration.packer.jenkins.varfile }}"
+    log_level: 1 
+    target_dir: "{{ directory.packer }}"
+
+# # Initialize Packer Module 
+# - name: Initialize Packer Module
+#   ansible.builtin.shell: "packer init ."
+#   args:
+#     chdir: "{{ directory.packer }}"
+
+# # Build packer configs
+# - name: Build Packer Module (Jenkins)
+#   ansible.builtin.shell: >
+#     PACKER_LOG=1
+#     AWS_PROFILE="{{ aws_profile }}" 
+#     packer build 
+#     -var-file="{{ configuration.packer.jenkins.varfile }}" 
+#     jenkins.pkr.hcl 2>&1
+#   args:
+#     chdir: "{{ directory.packer }}"

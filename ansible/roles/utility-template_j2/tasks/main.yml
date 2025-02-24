@@ -1,0 +1,19 @@
+---
+# Aggregate all the .j2 files that we need to template
+- name: Get the list of all .j2 files
+  find: 
+    path: "{{ target_dir }}"
+    patterns: "*.j2"
+    recurse: yes
+  register: all_j2_files
+# List out all the .j2 files
+- name: List all .j2 files
+  debug:
+    msg: "{{ item.path }}"
+  with_items: "{{ all_j2_files.files }}"
+# Apply templating to all .j2 files
+- name: Apply variables to ALL .j2 template files
+  template: 
+    src: "{{ item.path }}"
+    dest: "{{ item.path | regex_replace('\\.j2$', '') }}"
+  with_items: "{{ all_j2_files.files }}"

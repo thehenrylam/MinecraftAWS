@@ -1,0 +1,32 @@
+---
+# Determine snapshot ID
+- name: Determine snapshot ID
+  command: >
+    aws ec2 describe-images 
+    --profile "{{ aws_profile }}"
+    --image-id "{{ target_ami_id }}" 
+    --query 'Images[*].BlockDeviceMappings[*].Ebs.SnapshotId' 
+    --output text 
+  args:
+    chdir: "{{ target_dir }}"
+  register: ami_snapshot_id
+
+# Delete AMI via ID
+- name: Delete AMI via ID
+  command: >
+    aws ec2 deregister-image
+    --profile "{{ aws_profile }}"
+    --image-id "{{ target_ami_id }}" 
+  args:
+    chdir: "{{ target_dir }}"
+  when: ami_snapshot_id.stdout != "" 
+
+# Delete Snapshot 
+- name: Delete Snapshot
+  command: > 
+    aws ec2 delete-snapshot
+    --profile "{{ aws_profile }}"
+    --snapshot-id "{{ ami_snapshot_id.stdout }}"
+  args:
+    chdir: "{{ target_dir }}" 
+  when: ami_snapshot_id.stdout != ""

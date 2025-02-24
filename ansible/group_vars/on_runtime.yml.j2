@@ -1,0 +1,9 @@
+# These values that the variables are representing
+# is from outputs of processes in this project.
+#
+# The following ansible role-task helps template this file:
+#   - utility-template_on_runtime
+on_runtime:
+  jenkins:
+    iam_instance_profile: "{{ user_input.jenkins.iam_instance_profile | default('DEFAULT') }}"
+    ami_id: "{{ user_input.jenkins.ami_id | default('UNDEFINED') }}"

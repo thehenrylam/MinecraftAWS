@@ -1,0 +1,29 @@
+---
+# Template on_runtime.yml 
+# Variables that we need for this operation:
+# - iam_instance_profile
+- name: Template on_runtime.yml
+  include_role:
+    name: utility-template_on_runtime
+# Load in the on_runtime variable file
+- name: Load on_runtime variables
+  include_vars: "{{ configuration.on_runtime.varfile }}"
+
+# Template j2 files (packer jenkins)
+- name: Template j2 files (packer jenkins)
+  include_role:
+    name: utility-template_j2
+  vars:
+    target_dir: "{{ directory.packer_config }}/jenkins/"
+
+# Execute packer module 
+- name: Validate Packer Module (Jenkins)
+  include_role:
+    name: utility-packer-execute
+  vars:
+    aws_profile: "{{ aws_profile }}"
+    command: "validate"
+    pkrfile: "jenkins.pkr.hcl"
+    varfile: "{{ configuration.packer.jenkins.varfile }}"
+    log_level: 0 # Set the log level to be simple to not clutter the output
+    target_dir: "{{ directory.packer }}"

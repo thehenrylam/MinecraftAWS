@@ -1,0 +1,6 @@
+---
+# This file is needed for all terraform executions
+- name: Template j2 variables (terraform_varfile)
+  template:
+    src: "{{ configuration.terraform.master.varfile }}.j2"
+    dest: "{{ configuration.terraform.master.varfile }}"
