@@ -9,46 +9,19 @@ terraform {
 
 locals {
     vpc_name    = "vpc-${var.nickname}"
-    # rtb_name    = "rtb-${var.nickname}"
-    # igw_name    = "igw-${var.nickname}"
-
-    # s3_name     = "s3b-${var.nickname}-datarepo"
-
-    jenkins_sbn_name    = "subnet-${var.nickname}-jenkins"
-    jenkins_eni_name    = "eni-${var.nickname}-jenkins"
-    jenkins_ec2_name    = "ec2-${var.nickname}-jenkins"
-    jenkins_vol_name    = "vol-${var.nickname}-jenkins"
-    jenkins_sg_name     = "sgrp-${var.nickname}-jenkins"
-    jenkins_kp_name     = "kp-${var.nickname}-jenkins"
 }
 
 data "aws_vpc" "vpc_cloud" {
-  filter {
-    name   = "tag:Name"
-    values = ["${local.vpc_name}"]
-  }
+    filter {
+        name   = "tag:Name"
+        values = ["${local.vpc_name}"]
+    }
 }
-
-# module "vpc_cloud" {
-#     source          = "./vpc_cloud"
-#     aws_region      = var.aws_region
-#     # Networking
-#     vpc_name        = local.vpc_name
-#     rtb_name        = local.rtb_name
-#     igw_name        = local.igw_name
-#     vpc_cidr_block  = var.vpc_cidr_block
-# }
-
-# module "s3_datarepo" {
-#     source          = "./s3_datarepo"
-#     aws_region      = var.aws_region
-#     # Datarepo Settings
-#     s3_name         = local.s3_name
-# }
 
 module "ec2_jenkins" {
     source                      = "./ec2_jenkins"
     aws_region                  = var.aws_region
+    nickname                    = var.nickname
     # Networking
     vpc_id                      = data.aws_vpc.vpc_cloud.id
     sbn_jenkins_cidr_block      = var.sbn_jenkins_cidr_block
@@ -57,18 +30,12 @@ module "ec2_jenkins" {
     # Admin IPs (For SSH Access)
     admin_ip_list               = var.admin_ip_list
     # Jenkins Settings
+    jenkins_instance_profile    = var.jenkins_instance_profile
     jenkins_availability_zone   = var.jenkins_availability_zone
     jenkins_eipalloc_id         = var.jenkins_eipalloc_id
-    jenkins_sbn_name            = local.jenkins_sbn_name
-    jenkins_eni_name            = local.jenkins_eni_name
-    jenkins_ec2_name            = local.jenkins_ec2_name
     jenkins_ec2_type            = var.jenkins_ec2_type
-    jenkins_vol_name            = local.jenkins_vol_name
     jenkins_vol_size            = var.jenkins_vol_size
     jenkins_vol_type            = var.jenkins_vol_type
-    jenkins_vol_device_name     = var.jenkins_vol_device_name
     jenkins_ami_id              = var.jenkins_ami_id
-    jenkins_sg_name             = local.jenkins_sg_name
-    jenkins_kp_name             = local.jenkins_kp_name
     jenkins_pem_filename        = var.jenkins_pem_filename
 }

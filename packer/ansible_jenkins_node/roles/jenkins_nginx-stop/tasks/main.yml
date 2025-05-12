@@ -1,0 +1,12 @@
+---
+- name: Check if repo folder exists
+  stat: 
+    path: "{{ host_dir }}/nginx/"
+  register: repo_folder
+
+- name: Make sure that the nginx environment is turned off
+  command: docker compose down
+  args:
+    chdir: "{{ host_dir }}/nginx/"
+  when: repo_folder.stat.exists
+

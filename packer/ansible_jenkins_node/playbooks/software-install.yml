@@ -1,0 +1,5 @@
+---
+- name: Install software for jenkins node
+  hosts: localhost
+  roles:
+   - "jenkins_software-install"

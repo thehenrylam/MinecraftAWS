@@ -1,0 +1,42 @@
+---
+- name: Declare Variables
+  set_fact: 
+    nginx_config_file: "nginxconfig_jenkins.yml"
+    force_execution: "{{ force_execution | default(false) }}"
+
+- name: Make sure that the nginx environment is turned off
+  include_role:
+    name: jenkins_nginx-stop 
+
+- name: Fetch dhparams.pem
+  include_role:
+    name: utility_secrets-fetch_file
+  vars:
+    target_dir: "{{ host_dir }}/nginx/config/"
+    target_file: "dhparams.pem"
+    profile_id: "iam-instance_profile-mcaws-tango-jenkins-20250227042036"
+    secret_id: "{{ secrets.dhparams }}"
+    force_execution: force_execution == "true"
+
+- name: Fetch privkey.pem
+  include_role:
+    name: utility_secrets-fetch_file
+  vars:
+    target_dir: "{{ host_dir }}/nginx/certs/"
+    target_file: "privkey.pem"
+    profile_id: "iam-instance_profile-mcaws-tango-jenkins-20250227042036"
+    secret_id: "{{ secrets.privkey }}"
+    force_execution: force_execution == "true"
+
+- name: Fetch fullchain.pem
+  include_role:
+    name: utility_secrets-fetch_file
+  vars:
+    target_dir: "{{ host_dir }}/nginx/certs/"
+    target_file: "fullchain.pem"
+    profile_id: "iam-instance_profile-mcaws-tango-jenkins-20250227042036"
+    secret_id: "{{ secrets.fullchain }}"
+    force_execution: force_execution == "true"
+
+
+

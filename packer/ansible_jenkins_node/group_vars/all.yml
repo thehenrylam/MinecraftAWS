@@ -1,0 +1,21 @@
+---
+# The main directory of the host (contains all of the applications)
+host_dir: "/home/admin/"
+
+# Names of secrets
+secrets:
+  dhparams:   "scrt-mcaws-tango-jenkins-dhparams_pem"
+  privkey:    "scrt-mcaws-tango-jenkins-privkey_pem"
+  fullchain:  "scrt-mcaws-tango-jenkins-fullchain_pem"
+
+# Git Repo
+gitrepo:
+  nginx: "https://github.com/thehenrylam/SimpleNginx.git"
+  nginx_version: "main"
+  jenkins: "https://github.com/thehenrylam/SimpleJenkins.git"
+  jenkins_version: "main"
+
+# Swapfile settings
+swapfile:
+  limit: "2G"
+

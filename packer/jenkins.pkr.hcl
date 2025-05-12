@@ -1,8 +1,12 @@
 packer {
     required_plugins {
         amazon = {
-            version = ">= 1.0.0"
-            source = "github.com/hashicorp/amazon"
+            source  = "github.com/hashicorp/amazon"
+            version = ">= 1.3.5"
+        }
+        ansible = {
+            source  = "github.com/hashicorp/ansible"
+            version = ">= 1.1.3"
         }
     }
 }
@@ -24,14 +28,15 @@ variable "github_url_jenkins" {
 }
 
 locals {
+    # The home directory (depends on the base AMI that its being used)
+    home_directory = "/home/admin"
+
     # Ansible directory (Contains the variable files and template files)
-    ansible_directory = "../ansible/"
-    ansible_packer_jenkins_directory = "${local.ansible_directory}/template/config_packer/jenkins/"
+    ansible_directory = "${local.home_directory}/ansible/"
 
     # The AMI name
     ami_name = "ami_${var.nickname}_jenkins"
-    # The home directory (depends on the base AMI that its being used)
-    home_directory = "/home/admin"
+    
     # The docker version that will be installed
     docker_version_string = "5:27.4.0-1~debian.12~bookworm"
 }
@@ -57,44 +62,107 @@ source "amazon-ebs" "jenkins" {
 build {
     sources = ["source.amazon-ebs.jenkins"]
 
-    # Ensure the target directories exist before uploading files
+    # Set up all permissions and execute initialize_node_jenkins.sh
     provisioner "shell" {
         inline = [
-            "mkdir -p ${local.home_directory}/scripts/config",
-            "mkdir -p ${local.home_directory}/scripts"
+            "mkdir -p ${local.ansible_directory}/scripts/",
         ]
     }
 
-    # Upload all needed scripts to the instance
     provisioner "file" {
-        source      = "${local.ansible_packer_jenkins_directory}/nginxconfig_jenkins.yml"
-        destination = "${local.home_directory}/scripts/config/nginxconfig_jenkins.yml"
+        source =        "./ansible_jenkins_node/scripts/apt_app_install.sh"
+        destination =   "${local.ansible_directory}/scripts/apt_app_install.sh"
     }
     provisioner "file" {
-        source      = "./jenkins_node/common_functions.sh"
-        destination = "${local.home_directory}/scripts/common_functions.sh"
+        source =        "./ansible_jenkins_node/scripts/apt_app_check.sh"
+        destination =   "${local.ansible_directory}/scripts/apt_app_check.sh"
+    }
+
+    provisioner "file" {
+        source =        "./ansible_jenkins_node/scripts/debian_ansible_uninstall.sh"
+        destination =   "${local.ansible_directory}/scripts/debian_ansible_uninstall.sh"
     }
     provisioner "file" {
-        source      = "./jenkins_node/deploy_app_jenkins.sh"
-        destination = "${local.home_directory}/scripts/deploy_app_jenkins.sh"
+        source =        "./ansible_jenkins_node/scripts/debian_ansible_install.sh"
+        destination =   "${local.ansible_directory}/scripts/debian_ansible_install.sh"
     }
+
+    # Set up ansible to be able to execute ansible playbooks 
+    provisioner "shell" {
+        inline = [
+            "chmod +x ${local.ansible_directory}/scripts/*.sh",
+            "cd ${local.ansible_directory}/",
+            "sudo bash -x -c './scripts/apt_app_install.sh' 2>&1 | tee apt_app_install.log",
+            "sudo bash -x -c './scripts/apt_app_check.sh' 2>&1 | tee apt_app_check.log",
+            "sudo bash -x -c './scripts/debian_ansible_install.sh' 2>&1 | tee debian_ansible_install.log",
+        ]
+    }
+
+    provisioner "ansible-local" {
+        # This is a workaround to copy over ./ansible_jenkins_node/ 
+        # to the target directory without executing anything we don't want.
+        playbook_dir  = "./ansible_jenkins_node/"
+        playbook_file = "./ansible_jenkins_node/playbooks/utility-do-nothing.yml"
+        # # Make sure the uploads use SFTP
+        # # This is to help get around the issue where ansible.cfg's 
+        # # "[default]" snippet causes rawSCP to choke up and throw and error
+        # use_sftp      = true
+        # # Run as your SSH user
+        # run_as_user   = "admin"
+        # Upload everything into ${local.ansible_directory} instead
+        staging_directory = "${local.ansible_directory}"
+        # keep it around if you need to inspect it afterwards
+        clean_staging_directory = false
+    }
+
+    # provisioner "file" {
+    #     source =        "./ansible_jenkins_node/"
+    #     destination =   "${local.ansible_directory}"
+    # }
+
     provisioner "file" {
-        source      = "./jenkins_node/deploy_app_nginx.sh"
-        destination = "${local.home_directory}/scripts/deploy_app_nginx.sh"
+        source =        "../ansible/template/config_packer/jenkins/nginxconfig_jenkins.yml"
+        destination =   "${local.ansible_directory}/template/nginxconfig_jenkins.yml"
     }
-    provisioner "file" {
-        source      = "./jenkins_node/initialize_node_jenkins.sh"
-        destination = "${local.home_directory}/scripts/initialize_node_jenkins.sh"
-    }
+
+    # # Upload all needed scripts to the instance
+    # provisioner "file" {
+    #     source =        "./scripts/debian_docker_uninstall.sh"
+    #     destination =   "${local.ansible_directory}/scripts/debian_docker_uninstall.sh"
+    # }
+    # provisioner "file" {
+    #     source =        "./scripts/debian_docker_install.sh"
+    #     destination =   "${local.ansible_directory}/scripts/debian_docker_install.sh"
+    # }
+    # provisioner "file" {
+    #     source =        "./scripts/debian_ansible_uninstall.sh"
+    #     destination =   "${local.ansible_directory}/scripts/debian_ansible_uninstall.sh"
+    # }
+    # provisioner "file" {
+    #     source =        "./scripts/debian_ansible_install.sh"
+    #     destination =   "${local.ansible_directory}/scripts/debian_ansible_install.sh"
+    # }
+    # provisioner "file" {
+    #     source =        "./scripts/apt_app_install.sh"
+    #     destination =   "${local.ansible_directory}/scripts/apt_app_install.sh"
+    # }
+    # provisioner "file" {
+    #     source =        "./scripts/apt_app_check.sh"
+    #     destination =   "${local.ansible_directory}/scripts/apt_app_check.sh"
+    # }
+    # provisioner "file" {
+    #     source =        "./scripts/linux_setup_swapfile.sh"
+    #     destination =   "${local.ansible_directory}/scripts/linux_setup_swapfile.sh"
+    # }
 
     # Set up all permissions and execute initialize_node_jenkins.sh
     provisioner "shell" {
         inline = [
-            "chmod +x ${local.home_directory}/scripts/common_functions.sh",
-            "chmod +x ${local.home_directory}/scripts/deploy_app_jenkins.sh",
-            "chmod +x ${local.home_directory}/scripts/deploy_app_nginx.sh",
-            "chmod +x ${local.home_directory}/scripts/initialize_node_jenkins.sh",
-            "${local.home_directory}/scripts/initialize_node_jenkins.sh >> ${local.home_directory}/scripts/initialize_node_jenkins.log 2>&1"
+            "chmod +x ${local.ansible_directory}/scripts/*.sh",
+            "cd ${local.ansible_directory}/",
+            # "sudo ./scripts/debian_ansible_install.sh >> debian_ansible_install.log 2>&1",
+            "sudo ansible-playbook playbooks/software-install.yml >> software-install.log 2>&1",
+            "sudo ansible-playbook playbooks/deploy-nginx.yml >> deploy-nginx.log 2>&1",
         ]
         environment_vars = [
             "HOME_DIRECTORY=${local.home_directory}", 

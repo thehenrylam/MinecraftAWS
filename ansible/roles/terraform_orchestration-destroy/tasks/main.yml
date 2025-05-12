@@ -1,0 +1,26 @@
+---
+# Template on_runtime.yml 
+# Variables that we need for this operation:
+# - iam_instance_profile
+- name: Template on_runtime.yml
+  include_role:
+    name: utility-template_on_runtime
+# Load in the on_runtime variable file
+- name: Load on_runtime variables
+  include_vars: "{{ configuration.on_runtime.varfile }}"
+
+### Ensure that the terraform variable file is up-to-date
+- name: Update Terraform Variable file is up-to-date
+  template:
+    src: "{{ configuration.terraform.master.varfile }}.j2"
+    dest: "{{ configuration.terraform.master.varfile }}"
+
+# Destroy Terraform Module
+- name: Destroy Terraform Module
+  include_role: 
+    name: utility-terraform-execute
+  vars:
+    aws_profile: "{{ aws_profile }}"
+    command: "destroy"
+    varfile: "{{ configuration.terraform.master.varfile }}"
+    target_dir: "{{ directory.terraform }}/orchestration/"

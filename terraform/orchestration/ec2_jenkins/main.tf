@@ -15,14 +15,22 @@ provider "aws" {
     region = var.aws_region
 }
 
+locals {
+    jenkins_sbn_name    = "subnet-${var.nickname}-jenkins"
+    jenkins_eni_name    = "eni-${var.nickname}-jenkins"
+    jenkins_ec2_name    = "ec2-${var.nickname}-jenkins"
+    jenkins_vol_name    = "vol-${var.nickname}-jenkins"
+    jenkins_sg_name     = "sgrp-${var.nickname}-jenkins"
+    jenkins_kp_name     = "kp-${var.nickname}-jenkins"
+}
+
 # EC2 Jenkins instance
 resource "aws_instance" "ec2_jenkins" {
-    ami             = var.jenkins_ami_id    # "ami-0789039e34e739d67"
-    instance_type   = var.jenkins_ec2_type  # "t4g.micro"
-    # subnet_id       = aws_subnet.subnet_jenkins.id
-    # security_groups = [aws_security_group.sg_jenkins.id]
+    ami                     = var.jenkins_ami_id    # "ami-0789039e34e739d67"
+    instance_type           = var.jenkins_ec2_type  # "t4g.micro"
+    iam_instance_profile    = "${var.jenkins_instance_profile}"
 
-    # Associate KeyPair
+    # Associate KeyPair (To allow SSH access into EC2 environment)
     key_name = aws_key_pair.keypair_jenkins.key_name
 
     root_block_device {
@@ -32,7 +40,8 @@ resource "aws_instance" "ec2_jenkins" {
         delete_on_termination = true
 
         tags = {
-            Name = var.jenkins_vol_name
+            Nickname = var.nickname
+            Name = local.jenkins_vol_name
         }        
     }
 
@@ -43,7 +52,8 @@ resource "aws_instance" "ec2_jenkins" {
     }
 
     tags = {
-        Name = var.jenkins_ec2_name 
+        Nickname = var.nickname
+        Name = local.jenkins_ec2_name 
     }
 }
 
@@ -53,7 +63,8 @@ resource "aws_network_interface" "eni_jenkins" {
     security_groups = [aws_security_group.sg_jenkins.id]
 
     tags = {
-        Name = var.jenkins_eni_name
+        Nickname = var.nickname
+        Name = local.jenkins_eni_name
     }
 }
 
@@ -75,18 +86,20 @@ resource "aws_subnet" "subnet_jenkins" {
     availability_zone = var.jenkins_availability_zone # "us-east-1a"
 
     tags = {
-        Name = var.jenkins_sbn_name
+        Nickname = var.nickname
+        Name = local.jenkins_sbn_name
     }
 }
 
 # Define a Security Group to allow SSH access to the EC2 instance
 resource "aws_security_group" "sg_jenkins" {
-    name        = var.jenkins_sg_name 
+    name        = local.jenkins_sg_name 
     description = "Security Group for Jenkins Instance"
     vpc_id      = var.vpc_id 
 
     tags = {
-        Name = var.jenkins_sg_name 
+        Nickname = var.nickname
+        Name = local.jenkins_sg_name 
     }
 
     # Ingress rules
@@ -142,7 +155,7 @@ resource "aws_security_group" "sg_jenkins" {
 
 # Keypair Setup 
 resource "aws_key_pair" "keypair_jenkins" {
-    key_name = var.jenkins_kp_name 
+    key_name = local.jenkins_kp_name 
     public_key = tls_private_key.tls_key_jenkins.public_key_openssh
 }
 

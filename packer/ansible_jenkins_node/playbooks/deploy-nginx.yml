@@ -1,0 +1,21 @@
+---
+- name: Stop Nginx
+  hosts: localhost
+  roles:
+   - "jenkins_nginx-stop"
+
+- name: Setup Nginx
+  hosts: localhost
+  roles:
+   - "jenkins_nginx-setup"
+
+- name: Apply Keys for Nginx
+  hosts: localhost
+  roles:
+   - "jenkins_nginx-apply_keys"
+
+- name: Start Nginx
+  hosts: localhost
+  roles:
+   - "jenkins_nginx-start"
+

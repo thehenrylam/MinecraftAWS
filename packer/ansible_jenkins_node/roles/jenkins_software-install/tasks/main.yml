@@ -1,0 +1,28 @@
+---
+- name: Setup SWAPFILE
+  command: ./linux_setup_swapfile.sh "{{ swapfile.limit }}"
+  args:
+    chdir: "{{ playbook_dir }}/../scripts/"
+
+- name: Install APPs via APT
+  command: ./apt_app_install.sh 
+  args:
+    chdir: "{{ playbook_dir }}/../scripts/"
+
+- name: Checks APPs installed via APT
+  command: ./apt_app_check.sh
+  args:
+    chdir: "{{ playbook_dir }}/../scripts/"
+
+- name: Install Docker
+  command: ./debian_docker_install.sh
+  args:
+    chdir: "{{ playbook_dir }}/../scripts/"
+
+- name: Install Ansible
+  command: ./debian_ansible_install.sh
+  args:
+    chdir: "{{ playbook_dir }}/../scripts/"
+
+
+

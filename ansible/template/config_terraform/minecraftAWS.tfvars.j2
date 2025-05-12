@@ -13,10 +13,11 @@ vpc_cidr_block          = "{{ cloud.vpc.cidr_block }}"
 sbn_jenkins_cidr_block  = "{{ cloud.sbn.cidr_block_jenkins }}"
 
 # Jenkins Settings
+jenkins_instance_profile = "{{ on_runtime.jenkins.iam_instance_profile | default('NULL') }}"
 jenkins_availability_zone = "{{ jenkins.aws.availability_zone }}"
 jenkins_eipalloc_id = null
 jenkins_ec2_type = "{{ jenkins.aws.ec2.type }}"
-jenkins_ami_id = "{{ on_runtime.jenkins_ami_id | default('UNDEFINED') }}"
+jenkins_ami_id = "{{ on_runtime.jenkins.ami_id | default('UNDEFINED') }}"
 jenkins_vol_size = {{ jenkins.aws.vol.size }}
 jenkins_vol_type = "{{ jenkins.aws.vol.type }}"
 jenkins_vol_device_name = "{{ jenkins.aws.vol.device_name }}"

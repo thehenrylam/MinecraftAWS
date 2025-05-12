@@ -3,6 +3,11 @@ variable "aws_region" {
     type        = string
 }
 
+variable "nickname" {
+    description = "The deployment's identifier (nickname). Will be used to help name cloud assets (e.g. Nickname of 'apple-fritter' will result in the name of 'vpc-apple-fritter' for the VPC)"
+    type        = string
+}
+
 variable "vpc_id" {
     description = "ID of the VPC (Virtual Private Cloud) that the deployment will operate in"
     type        = string
@@ -26,6 +31,11 @@ variable "admin_ip_list" {
     }
 }
 
+variable "jenkins_instance_profile" {
+    description = "The IAM instance profile for the Jenkins instance"
+    type        = string
+}
+
 variable "jenkins_availability_zone" {
     description = "The availability zone for the Jenkins instance to exist on"
     type        = string
@@ -45,28 +55,8 @@ variable "jenkins_eipalloc_id" {
     }
 }
 
-variable "jenkins_sbn_name" {
-    description = "Subnet name for Jenkins instance"
-    type        = string
-}
-
-variable "jenkins_eni_name" {
-    description = "Elastic Network Interface for Jenkins instance"
-    type        = string
-}
-
-variable "jenkins_ec2_name" {
-    description = "EC2 Jenkins instance name"
-    type        = string
-}
-
 variable "jenkins_ec2_type" {
     description = "EC2 Jenkins instance type"
-    type        = string
-}
-
-variable "jenkins_vol_name" {
-    description = "EC2 Jenkins volume name"
     type        = string
 }
 
@@ -86,24 +76,8 @@ variable "jenkins_vol_type" {
     default     = "gp2"
 }
 
-variable "jenkins_vol_device_name" {
-    description = "EC2 Jenkins volume device name (e.g. /dev/sda1)"
-    type        = string
-    default     = "/dev/sda1"
-}
-
 variable "jenkins_ami_id" {
     description = "EC2 Jenkins instance AMI ID"
-    type        = string
-}
-
-variable "jenkins_sg_name" {
-    description = "Security Group name for Jenkins instance"
-    type        = string
-}
-
-variable "jenkins_kp_name" {
-    description = "Keypair Name for Jenkins instance"
     type        = string
 }
 

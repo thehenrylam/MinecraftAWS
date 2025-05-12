@@ -1,0 +1,22 @@
+---
+- name: Check if secret file exists
+  stat: 
+    path: "{{ target_dir }}/{{ target_file }}"
+  register: target_file_exists
+
+- name: Initialize secret file
+  copy:
+    content: ""
+    dest: "{{ target_dir }}/{{ target_file }}"
+    force: false
+    mode: "0600"
+  when: not target_file_exists.stat.exists or force_execution
+
+- name: Fetch secret file
+  shell: aws secretsmanager get-secret-value --secret-id {{ secret_id }} --query SecretString --output text > "{{ target_file }}"
+  args:
+    chdir: "{{ target_dir }}"
+  when: not target_file_exists.stat.exists or force_execution
+
+
+

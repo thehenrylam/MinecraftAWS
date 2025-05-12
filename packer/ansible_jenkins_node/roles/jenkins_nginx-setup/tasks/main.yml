@@ -1,0 +1,30 @@
+---
+- name: Declare Variables
+  set_fact: 
+    nginx_config_file: "nginxconfig_jenkins.yml"
+    force_execution: "{{ force_execution | default('false') }}"
+
+- name: Check if nginx repository exists
+  stat:
+    path: "{{ host_dir }}/nginx/"
+  register: nginx_repo_exists
+
+- name: Download nginx repository
+  git:
+    repo: "{{ gitrepo.nginx }}"
+    dest: "{{ host_dir }}/nginx/"
+    version: "{{ gitrepo.nginx_version }}"
+    force: yes
+  when: (not nginx_repo_exists.stat.exists) or (force_execution == "true") 
+
+- name: Copy custom nginx variable file to repository
+  copy:
+    src: "{{ playbook_dir }}/../template/{{ nginx_config_file }}"
+    dest: "{{ host_dir }}/nginx/ansible/group_vars/{{ nginx_config_file }}"
+
+- name: Execute ansible deployment for the nginx repository
+  command: ansible-playbook ansible/playbooks/deploy-config_jenkins.yml --extra-vars=@ansible/group_vars/{{ nginx_config_file }}
+  args:
+    chdir: "{{ host_dir }}/nginx/"
+
+

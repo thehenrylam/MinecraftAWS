@@ -1,0 +1,10 @@
+- hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Do Nothing Message
+      debug:
+        msg: "A do-nothing playbook had been executed and this is a dummy output"
+# This playbook is present so that Packer can execute this file in its "ansible-local" provisioner
+# Therefore, it will result in the entire ansible folder being sent over to the EC2 host 
+# without executing anything that we don't want to execute at the moment

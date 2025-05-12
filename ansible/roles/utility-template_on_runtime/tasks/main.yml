@@ -2,43 +2,39 @@
 # Fetch variables in order of execution
 
 ### Template: Foundation layer
-- name: Check if output exists (foundation)
-  stat:
-    path: "{{ directory.terraform }}/foundation/"
-  register: foundation_output_status
-
 - name: Fetch output (foundation)
   command: 
     # We expect a json output (in string form)
     cmd: "tofu output -json foundation_output"
     chdir: "{{ directory.terraform }}/foundation/"
   register: raw_output_TF_foundation
-  when: foundation_output_status.stat.exists == true
+  ignore_errors: true
 
+# Only execute if the command above is 0
 - name: Parse JSON output (foundation)
   set_fact: 
     TF_foundation: "{{ raw_output_TF_foundation.stdout | to_json | from_json }}"
-  when: foundation_output_status.stat.exists == true
-
+  when: (raw_output_TF_foundation.rc == 0)
 
 
 ### Template: Packer AMIs
-- name: Check if output exists (packer - jenkins)
-  stat:
-    path: "{{ output.packer.jenkins }}"
-  register: jenkins_output_status
-
 - name: Fetch output (packer - jenkins)
   command:
     cmd: "cat {{ output.packer.jenkins }}"
     chdir: "{{ directory.packer }}"
   register: raw_output_PK_jenkins
-  when: jenkins_output_status.stat.exists == true
+  ignore_errors: true
 
-- name: Parse JSON output (packer - jenkins)
+# Execute if the command failed (This is needed because we needed to perform a lot of parsing to a point where default(...) statement can't cover that failure)
+- name: Parse JSON output (packer - jenkins) (DEFAULT)
+  set_fact:
+    PK_jenkins: {"builds": [{"artifact_id": "0:UNDEFINED"}]}
+  when: raw_output_PK_jenkins.rc != 0
+# Only execute if the command above is 0
+- name: Parse JSON output (packer - jenkins) 
   set_fact:
     PK_jenkins: "{{ raw_output_PK_jenkins.stdout | to_json | from_json }}"
-  when: jenkins_output_status.stat.exists == true
+  when: (raw_output_PK_jenkins.rc == 0)
 
 
 ### Aggregate results from all outputs (to be used to template the variable file)
