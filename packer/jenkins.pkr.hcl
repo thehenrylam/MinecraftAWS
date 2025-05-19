@@ -62,13 +62,14 @@ source "amazon-ebs" "jenkins" {
 build {
     sources = ["source.amazon-ebs.jenkins"]
 
-    # Set up all permissions and execute initialize_node_jenkins.sh
+    # Initialize the ${local.ansible_directory}/scripts/ folder to prevent upload issues
     provisioner "shell" {
         inline = [
             "mkdir -p ${local.ansible_directory}/scripts/",
         ]
     }
 
+    # Upload Prerequisites: Software installation script
     provisioner "file" {
         source =        "./ansible_jenkins_node/scripts/apt_app_install.sh"
         destination =   "${local.ansible_directory}/scripts/apt_app_install.sh"
@@ -77,7 +78,7 @@ build {
         source =        "./ansible_jenkins_node/scripts/apt_app_check.sh"
         destination =   "${local.ansible_directory}/scripts/apt_app_check.sh"
     }
-
+    # Upload Prerequisites: Ansible installation script
     provisioner "file" {
         source =        "./ansible_jenkins_node/scripts/debian_ansible_uninstall.sh"
         destination =   "${local.ansible_directory}/scripts/debian_ansible_uninstall.sh"
@@ -87,7 +88,7 @@ build {
         destination =   "${local.ansible_directory}/scripts/debian_ansible_install.sh"
     }
 
-    # Set up ansible to be able to execute ansible playbooks 
+    # Install Prerequisites: Helper Software + Ansible 
     provisioner "shell" {
         inline = [
             "chmod +x ${local.ansible_directory}/scripts/*.sh",
@@ -98,70 +99,35 @@ build {
         ]
     }
 
+    # Attempt to upload the ansible repo via ansible-local
+    # The reason why this is done this way instead of using "file" provsioner 
+    # is to workaround the issue of uploading ansible.cfg, which interferes with rawSCP
+    # Which "[default]" tag causes it to crash
     provisioner "ansible-local" {
         # This is a workaround to copy over ./ansible_jenkins_node/ 
         # to the target directory without executing anything we don't want.
         playbook_dir  = "./ansible_jenkins_node/"
         playbook_file = "./ansible_jenkins_node/playbooks/utility-do-nothing.yml"
-        # # Make sure the uploads use SFTP
-        # # This is to help get around the issue where ansible.cfg's 
-        # # "[default]" snippet causes rawSCP to choke up and throw and error
-        # use_sftp      = true
-        # # Run as your SSH user
-        # run_as_user   = "admin"
         # Upload everything into ${local.ansible_directory} instead
         staging_directory = "${local.ansible_directory}"
         # keep it around if you need to inspect it afterwards
         clean_staging_directory = false
     }
 
-    # provisioner "file" {
-    #     source =        "./ansible_jenkins_node/"
-    #     destination =   "${local.ansible_directory}"
-    # }
-
+    # Upload the nginxconfig_jenkins.yml within the centralized config folder
     provisioner "file" {
         source =        "../ansible/template/config_packer/jenkins/nginxconfig_jenkins.yml"
         destination =   "${local.ansible_directory}/template/nginxconfig_jenkins.yml"
     }
-
-    # # Upload all needed scripts to the instance
-    # provisioner "file" {
-    #     source =        "./scripts/debian_docker_uninstall.sh"
-    #     destination =   "${local.ansible_directory}/scripts/debian_docker_uninstall.sh"
-    # }
-    # provisioner "file" {
-    #     source =        "./scripts/debian_docker_install.sh"
-    #     destination =   "${local.ansible_directory}/scripts/debian_docker_install.sh"
-    # }
-    # provisioner "file" {
-    #     source =        "./scripts/debian_ansible_uninstall.sh"
-    #     destination =   "${local.ansible_directory}/scripts/debian_ansible_uninstall.sh"
-    # }
-    # provisioner "file" {
-    #     source =        "./scripts/debian_ansible_install.sh"
-    #     destination =   "${local.ansible_directory}/scripts/debian_ansible_install.sh"
-    # }
-    # provisioner "file" {
-    #     source =        "./scripts/apt_app_install.sh"
-    #     destination =   "${local.ansible_directory}/scripts/apt_app_install.sh"
-    # }
-    # provisioner "file" {
-    #     source =        "./scripts/apt_app_check.sh"
-    #     destination =   "${local.ansible_directory}/scripts/apt_app_check.sh"
-    # }
-    # provisioner "file" {
-    #     source =        "./scripts/linux_setup_swapfile.sh"
-    #     destination =   "${local.ansible_directory}/scripts/linux_setup_swapfile.sh"
-    # }
 
     # Set up all permissions and execute initialize_node_jenkins.sh
     provisioner "shell" {
         inline = [
             "chmod +x ${local.ansible_directory}/scripts/*.sh",
             "cd ${local.ansible_directory}/",
-            # "sudo ./scripts/debian_ansible_install.sh >> debian_ansible_install.log 2>&1",
+            # software-install.yml installs the prereqs (Shouldn't be an issue since its idempotent) along with docker + ansible
             "sudo ansible-playbook playbooks/software-install.yml >> software-install.log 2>&1",
+            # deploy-nginx.yml pulls from the nginx repo and deploys it into the ec2 instance.
             "sudo ansible-playbook playbooks/deploy-nginx.yml >> deploy-nginx.log 2>&1",
         ]
         environment_vars = [
