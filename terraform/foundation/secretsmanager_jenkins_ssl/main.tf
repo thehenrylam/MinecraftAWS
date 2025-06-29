@@ -33,7 +33,7 @@ locals {
 resource "aws_secretsmanager_secret" "scrt_fullchain_pem" {
     # Initialize the secret container
     name = "${local.prefix_scrt}-fullchain_pem"
-    description = "Stores the fullchain.pem fiel for use in Jenkins (MinecraftAWS)"
+    description = "Stores the fullchain.pem field for use in Jenkins (MinecraftAWS)"
     recovery_window_in_days = 0
 
     tags = {
@@ -50,7 +50,7 @@ resource "aws_secretsmanager_secret_version" "scrt_fullchain_pem_version" {
 resource "aws_secretsmanager_secret" "scrt_privkey_pem" {
     # Initialize the secret container
     name = "${local.prefix_scrt}-privkey_pem"
-    description = "Stores the privkey.pem fiel for use in Jenkins (MinecraftAWS)"
+    description = "Stores the privkey.pem field for use in Jenkins (MinecraftAWS)"
     recovery_window_in_days = 0
 
     tags = {
@@ -67,7 +67,7 @@ resource "aws_secretsmanager_secret_version" "scrt_privkey_pem_version" {
 resource "aws_secretsmanager_secret" "scrt_dhparams_pem" {
     # Initialize the secret container
     name = "${local.prefix_scrt}-dhparams_pem"
-    description = "Stores the dhparams.pem fiel for use in Jenkins (MinecraftAWS)"
+    description = "Stores the dhparams.pem field for use in Jenkins (MinecraftAWS)"
     recovery_window_in_days = 0
 
     tags = {
