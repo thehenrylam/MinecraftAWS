@@ -1,4 +1,4 @@
-# OPENTODU: AWS Secrets Manager 
+# OPENTOFU: AWS Secrets Manager 
 # Purpose: 
 #   - Stores critical files that needs to be kept secret for the purposes of deployment and other priviledged operations
 terraform {
