@@ -19,7 +19,7 @@ locals {
 
     output_data = {
         vpc_name = (module.vpc_cloud.vpc_id == null || trimspace(module.vpc_cloud.vpc_id) == "") ? "null" : module.vpc_cloud.vpc_id
-        instance_profile = (module.secretsmanager_jenkins_ssh.instance_profile_name == null || trimspace(module.secretsmanager_jenkins_ssh.instance_profile_name) == "") ? "null" : module.secretsmanager_jenkins_ssh.instance_profile_name
+        instance_profile = (module.secretsmanager_jenkins_node.instance_profile_name == null || trimspace(module.secretsmanager_jenkins_node.instance_profile_name) == "") ? "null" : module.secretsmanager_jenkins_node.instance_profile_name
     }
 }
 
@@ -39,9 +39,11 @@ module "s3_datarepo" {
     nickname        = var.nickname
 }
 
-# SecretsManager (Jenkins SSL) - Used to enable jenkins SSL
-module "secretsmanager_jenkins_ssh" {
-    source      = "./secretsmanager_jenkins_ssl"
+# SecretsManager (Jenkins Node) - Setup IAM Profile for Jenkins node
+#   - Jenkins TLS for SSL
+#   - Jenkins Credentials
+module "secretsmanager_jenkins_node" {
+    source      = "./secretsmanager_jenkins_node"
     aws_region  = var.aws_region
     nickname    = var.nickname
     # Cache path to grab the files

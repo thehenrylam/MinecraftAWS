@@ -14,7 +14,7 @@
   vars:
     target_dir: "{{ host_dir }}/nginx/config/"
     target_file: "dhparams.pem"
-    profile_id: "iam-instance_profile-mcaws-tango-jenkins-20250227042036"
+    profile_id: "{{ iam.profile_id }}"
     secret_id: "{{ secrets.dhparams }}"
     force_execution: force_execution == "true"
 
@@ -24,7 +24,7 @@
   vars:
     target_dir: "{{ host_dir }}/nginx/certs/"
     target_file: "privkey.pem"
-    profile_id: "iam-instance_profile-mcaws-tango-jenkins-20250227042036"
+    profile_id: "{{ iam.profile_id }}"
     secret_id: "{{ secrets.privkey }}"
     force_execution: force_execution == "true"
 
@@ -34,7 +34,7 @@
   vars:
     target_dir: "{{ host_dir }}/nginx/certs/"
     target_file: "fullchain.pem"
-    profile_id: "iam-instance_profile-mcaws-tango-jenkins-20250227042036"
+    profile_id: "{{ iam.profile_id }}"
     secret_id: "{{ secrets.fullchain }}"
     force_execution: force_execution == "true"
 

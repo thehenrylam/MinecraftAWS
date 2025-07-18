@@ -54,6 +54,14 @@ source "amazon-ebs" "jenkins" {
 
     iam_instance_profile = "${var.instance_profile}"
 
+    # Add this block to override the default root volume size
+    launch_block_device_mappings {
+        device_name           = "/dev/xvda"    # or "/dev/sda1" depending on Debian’s mapping
+        volume_size           = 12             # size in GB
+        volume_type           = "gp2"          # general purpose SSD (you can also use gp3, etc.)
+        delete_on_termination = true
+    }
+
     tags = {
         Nickname = "${var.nickname}"
     }
@@ -114,11 +122,55 @@ build {
         clean_staging_directory = false
     }
 
-    # Upload the nginxconfig_jenkins.yml within the centralized config folder
+    # UPLOAD VARIABLE FILES FOR:
+    #   1. NGINX    - nginxconfig_*.yml
+    #   2. JENKINS  - jenkinsconfig_*.yml
+    ### NGINX - nginxconfig_*.yml
     provisioner "file" {
         source =        "../ansible/template/config_packer/jenkins/nginxconfig_jenkins.yml"
         destination =   "${local.ansible_directory}/template/nginxconfig_jenkins.yml"
     }
+    # ### JENKINS - jenkinsconfig_*.yml
+    # provisioner "file" {
+    #     source =        "../ansible/template/config_packer/jenkins/jenkinsconfig_jenkins-all.yml"
+    #     destination =   "${local.ansible_directory}/template/jenkinsconfig_jenkins-all.yml"
+    # }
+    # provisioner "file" {
+    #     source =        "../ansible/template/config_packer/jenkins/jenkinsconfig_jenkins-extra_plugins_standard.yml"
+    #     destination =   "${local.ansible_directory}/template/jenkinsconfig_jenkins-extra_plugins_standard.yml"
+    # }
+    # ### JENKINS - ./dsl_jobs/*
+    # provisioner "file" {
+    #     source =        "../ansible/template/config_packer/jenkins/dsl_jobs/00-folder_structure_SAMPLE.groovy"
+    #     destination =   "${local.ansible_directory}/template/dsl_jobs/00-folder_structure_SAMPLE.groovy"
+    # }
+    # provisioner "file" {
+    #     source =        "../ansible/template/config_packer/jenkins/dsl_jobs/01-pipeline_alpha_SAMPLE.groovy"
+    #     destination =   "${local.ansible_directory}/template/dsl_jobs/01-pipeline_alpha_SAMPLE.groovy"
+    # }
+    # provisioner "file" {
+    #     source =        "../ansible/template/config_packer/jenkins/dsl_jobs/sub_folder_00/sub_file_00.groovy"
+    #     destination =   "${local.ansible_directory}/template/dsl_jobs/sub_folder_00/sub_file_00.groovy"
+    # }
+
+    # # UPLOAD VARIABLE FILES FOR:
+    # #   1. NGINX 
+    # #   2. JENKINS 
+    # ### NGINX - nginxconfig_jenkins.yml
+    # provisioner "file" {
+    #     source =        "../ansible/template/config_packer/jenkins/nginxconfig_jenkins.yml"
+    #     destination =   "${local.ansible_directory}/template/nginxconfig_jenkins.yml"
+    # }
+    # ### JENKINS - jenkinsconfig_jenkins-all.yml
+    # provisioner "file" {
+    #     source =        "../ansible/template/config_packer/jenkins/jenkinsconfig_jenkins-all.yml"
+    #     destination =   "${local.ansible_directory}/template/jenkinsconfig_jenkins-all.yml"
+    # }
+    # ### JENKINS - jenkinsconfig_jenkins-extra_plugins_standard.yml
+    # provisioner "file" {
+    #     source =        "../ansible/template/config_packer/jenkins/jenkinsconfig_jenkins-extra_plugins_standard.yml"
+    #     destination =   "${local.ansible_directory}/template/jenkinsconfig_jenkins-extra_plugins_standard.yml"
+    # }
 
     # Set up all permissions and execute initialize_node_jenkins.sh
     provisioner "shell" {
@@ -129,6 +181,8 @@ build {
             "sudo ansible-playbook playbooks/software-install.yml >> software-install.log 2>&1",
             # deploy-nginx.yml pulls from the nginx repo and deploys it into the ec2 instance.
             "sudo ansible-playbook playbooks/deploy-nginx.yml >> deploy-nginx.log 2>&1",
+            # deploy-jenkins.yml pulls from the jenkins repo and deploys it into the ec2 instance.
+            "sudo ansible-playbook playbooks/deploy-jenkins.yml >> deploy-jenkins.log 2>&1",
         ]
         environment_vars = [
             "HOME_DIRECTORY=${local.home_directory}", 

@@ -16,6 +16,13 @@
   vars:
     target_dir: "{{ directory.packer_config }}/jenkins/"
 
+# Template j2 files (packer/ansible_jenkins_node/)
+- name: Template j2 files (packer/ansible_jenkins_node/ jenkins)
+  include_role:
+    name: utility-template_j2
+  vars:
+    target_dir: "{{ directory.packer }}/ansible_jenkins_node/template/"
+
 # Execute packer module 
 - name: Build Packer Module (Jenkins)
   include_role:

@@ -1,0 +1,15 @@
+---
+- name: Stop Jenkins
+  hosts: localhost
+  roles:
+   - "jenkins_jenkins-stop"
+
+- name: Setup Jenkins
+  hosts: localhost
+  roles:
+   - "jenkins_jenkins-setup"
+
+- name: Start Jenkins
+  hosts: localhost
+  roles:
+   - "jenkins_jenkins-start"

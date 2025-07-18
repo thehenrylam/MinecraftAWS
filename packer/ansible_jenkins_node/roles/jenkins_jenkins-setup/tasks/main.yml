@@ -1,0 +1,109 @@
+---
+- name: Declare Variables
+  set_fact:
+    src_basedir: "{{ playbook_dir }}/../template/jenkins_app/"
+    dest_basedir: "{{ host_dir }}/jenkins/"
+    jenkins_config_file: 
+      all: "jenkinsconfig_jenkins-all.yml"
+      plugins: "jenkinsconfig_jenkins-extra_plugins_standard.yml"
+    force_execution: "{{ force | default('false') }}"
+
+# Make sure that the Jenkins repository is present in the host
+- name: Check if jenkins repository exists
+  stat: 
+    path: "{{ dest_basedir }}/"
+  register: jenkins_repo_exists
+- name: Download jenkins repository
+  git:
+    repo: "{{ gitrepo.jenkins }}"
+    dest: "{{ dest_basedir }}/"
+    version: "{{ gitrepo.jenkins_version }}"
+    force: yes
+  when: (not jenkins_repo_exists.stat.exists) or (force_execution == "true")
+
+# Move jenkins files to the repository (jenkins/ansible/group_vars/*)
+- name: Copy group_vars/ files to the repository 
+  synchronize: 
+    src: "{{ src_basedir }}/group_vars/"
+    dest: "{{ dest_basedir }}/ansible/group_vars/"
+    archive: true
+    delete: false
+
+# Move jenkins files to the repository (jenkins/r/jenkins_casc_standard/dsl_jobs/*)
+- name: Copy templates/jenkins_casc_standard/dsl_jobs/ files to the repository
+  synchronize:
+    src: "{{ src_basedir }}/jenkins_casc_standard/dsl_jobs/"
+    dest: "{{ dest_basedir }}/ansible/templates/jenkins_casc_standard/dsl_jobs/"
+    archive: true
+    delete: true # <-- Remove pre-existing dsl_jobs
+    rsync_opts:
+      - "--exclude=*.j2"
+
+### Initialize variable file - jenkins_credentials.yml (via AWS IAM)
+- name: Fetch jenkins_credentials_yml
+  include_role:
+    name: utility_secrets-fetch_file
+  vars:
+    target_dir: "{{ dest_basedir }}/ansible/group_vars/"
+    target_file: "jenkins_credentials.yml"
+    profile_id: "{{ iam.profile_id }}"
+    secret_id: "{{ secrets.jenkins_creds }}"
+    force_execution: force_execution == "true"
+
+# # Move jenkins variable file to the repository
+# ### Initialize variable file - all.yml
+# - name: Copy custom jenkins variable file to repository (all.yml)
+#   copy: 
+#     src: "{{ playbook_dir }}/../template/{{ jenkins_config_file.all }}"
+#     dest: "{{ host_dir }}/jenkins/ansible/group_vars/all.yml"
+
+# ### Initialize variable file - extra_plugins.txt
+# - name: Copy custom jenkins variable file to repository (extra_plugins_standard.yml)
+#   copy:
+#     src: "{{ playbook_dir }}/../template/{{ jenkins_config_file.plugins }}"
+#     dest: "{{ host_dir }}/jenkins/ansible/group_vars/extra_plugins_standard.yml"
+
+# ### Initialize variable file - jenkins_credentials.yml (via AWS IAM)
+# - name: Fetch jenkins_credentials_yml
+#   include_role:
+#     name: utility_secrets-fetch_file
+#   vars:
+#     target_dir: "{{ host_dir }}/jenkins/ansible/group_vars/"
+#     target_file: "jenkins_credentials.yml"
+#     profile_id: "{{ iam.profile_id }}"
+#     secret_id: "{{ secrets.jenkins_creds }}"
+#     force_execution: force_execution == "true"
+
+# ### Initialize DSL jobs - dsl_jobs/*
+# - name: Delete dsl_jobs folder in the target directory
+#   file:
+#     state: absent
+#     path: "{{ host_dir }}/jenkins/ansible/templates/jenkins_casc_standard/dsl_jobs/"
+
+# - name: Get directory structure of the template dsl_jobs directory
+#   ansible.builtin.file:
+#     path: '{{ host_dir }}/jenkins/ansible/templates/jenkins_casc_standard/dsl_jobs/{{ item.path }}'
+#     state: directory
+#   with_community.general.filetree: '{{ playbook_dir }}/../template/dsl_jobs/'
+#   when: item.state == 'directory'
+
+# - name: Template files from source directory and put them in destination directory
+#   ansible.builtin.template:
+#     src: '{{ item.src }}'
+#     dest: '{{ host_dir }}/jenkins/ansible/templates/jenkins_casc_standard/dsl_jobs/{{ item.path }}'
+#   with_community.general.filetree: '{{ playbook_dir }}/../template/dsl_jobs/'
+#   when: item.state == 'file'
+
+
+# Execute ansible deployment for Jenkins repo
+- name: Execute ansible deployment for the jenkins repository 
+  command: ansible-playbook ansible/playbooks/deploy-config_standard.yml 
+  args:
+    chdir: "{{ host_dir }}/jenkins/"
+
+# Remove sensitive data from Jenkins repo
+### REMOVE - jenkins_credentials.yml 
+- name: Remove file (delete file)
+  file:
+    path: "{{ host_dir }}/jenkins/ansible/group_vars/jenkins_credentials.yml"
+    state: absent

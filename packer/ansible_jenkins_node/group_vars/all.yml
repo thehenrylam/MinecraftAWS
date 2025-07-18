@@ -3,17 +3,21 @@
 host_dir: "/home/admin/"
 
 # Names of secrets
+iam:
+  profile_id: "iam-instance_profile-mcaws-tango-jenkins"
+
 secrets:
   dhparams:   "scrt-mcaws-tango-jenkins-dhparams_pem"
   privkey:    "scrt-mcaws-tango-jenkins-privkey_pem"
   fullchain:  "scrt-mcaws-tango-jenkins-fullchain_pem"
+  jenkins_creds: "scrt-mcaws-tango-jenkins-jenkins_credentials_yml"
 
 # Git Repo
 gitrepo:
   nginx: "https://github.com/thehenrylam/SimpleNginx.git"
   nginx_version: "main"
   jenkins: "https://github.com/thehenrylam/SimpleJenkins.git"
-  jenkins_version: "main"
+  jenkins_version: "SimpleJenkins_v1.0.0"
 
 # Swapfile settings
 swapfile:
