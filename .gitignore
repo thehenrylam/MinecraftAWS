@@ -17,6 +17,7 @@ ansible/template/*/*/*.tfvars
 ansible/template/*/*/*.yml
 ansible/template/*/*/*.pkrvars.hcl
 
+packer/ansible_jenkins_node/group_vars/*.yml
 
 minecraftAWS*.tfvars
 !minecraftAWS_TEMPLATE.tfvars

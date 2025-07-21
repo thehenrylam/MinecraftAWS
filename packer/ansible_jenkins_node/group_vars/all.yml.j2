@@ -4,13 +4,13 @@ host_dir: "/home/admin/"
 
 # Names of secrets
 iam:
-  profile_id: "iam-instance_profile-mcaws-tango-jenkins"
+  profile_id: "iam-instance_profile-{{ general.nickname }}-jenkins"
 
 secrets:
-  dhparams:   "scrt-mcaws-tango-jenkins-dhparams_pem"
-  privkey:    "scrt-mcaws-tango-jenkins-privkey_pem"
-  fullchain:  "scrt-mcaws-tango-jenkins-fullchain_pem"
-  jenkins_creds: "scrt-mcaws-tango-jenkins-jenkins_credentials_yml"
+  dhparams:   "scrt-{{ general.nickname }}-jenkins-dhparams_pem"
+  privkey:    "scrt-{{ general.nickname }}-jenkins-privkey_pem"
+  fullchain:  "scrt-{{ general.nickname }}-jenkins-fullchain_pem"
+  jenkins_creds: "scrt-{{ general.nickname }}-jenkins-jenkins_credentials_yml"
 
 # Git Repo
 gitrepo:
